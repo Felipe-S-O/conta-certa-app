@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import { Gabarito } from "next/font/google";
+import "@/app/globals.css";
+import { cn } from "@/lib/utils";
+import { Providers } from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const gabarito = Gabarito({ subsets: ["latin"], variable: "--font-gabarito" });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -23,11 +17,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className={cn("bg-background font-sans", gabarito.variable)}>
+        <Providers>
+          <div className="flex min-h-dvh">
+            <div className="grow overflow-auto">{children}</div>
+          </div>
+        </Providers>
       </body>
     </html>
   );
