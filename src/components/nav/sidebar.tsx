@@ -13,7 +13,7 @@ export function Sidebar() {
     return (
         <>
             {/* Mobile: Drawer */}
-            <div className="lg:hidden fixed top-16 left-2 z-50">
+            <div className="lg:hidden fixed top-11 left-2 z-50">
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetTrigger asChild>
                         <Button className="bg-slate-200  dark:bg-slate-800 text-primary-foreground dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700"
