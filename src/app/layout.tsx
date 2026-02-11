@@ -4,6 +4,7 @@ import "@/app/globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
 import { Toaster } from "sonner";
+import AuthProvider from "./providers/auth-provider";
 
 const gabarito = Gabarito({ subsets: ["latin"], variable: "--font-gabarito" });
 
@@ -20,12 +21,14 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={cn("bg-background font-sans", gabarito.variable)}>
-        <Providers>
-          <Toaster />
-          <div className="flex min-h-dvh">
-            <div className="grow overflow-auto">{children}</div>
-          </div>
-        </Providers>
+        <AuthProvider>
+          <Providers>
+            <Toaster />
+            <div className="flex min-h-dvh">
+              <div className="grow overflow-auto">{children}</div>
+            </div>
+          </Providers>
+        </AuthProvider>
       </body>
     </html>
   );

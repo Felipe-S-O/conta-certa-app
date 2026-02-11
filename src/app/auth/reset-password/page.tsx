@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { z } from "zod";
-import { resetPassword } from "@/api/password";
+import { resetPassword } from "@/services/password";
 
 // 🔑 Schema de validação
 const resetSchema = z

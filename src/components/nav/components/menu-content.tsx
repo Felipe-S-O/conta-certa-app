@@ -3,76 +3,107 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/atoms/userAtom";
 
-// importe os ícones do Lucide
+// Ícones
 import {
-    LayoutDashboard,
     Users,
     Folder,
     Package,
-    CreditCard,
     ShoppingCart,
     Settings,
     Gauge,
     ArrowRightLeft,
+    LogOut,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 
-function MenuContent() {
+interface MenuContentProps {
+    role?: string; // Recebido da Sidebar
+}
+
+function MenuContent({ role }: MenuContentProps) {
     const pathname = usePathname();
+    const user = useAtomValue(userAtom);
 
+    // Definição dos itens com controle de permissão (RBAC)
     const items = [
-        { label: "Dashboard", href: "/dashboard", icon: Gauge },
-        { label: "Usuários", href: "/usuarios", icon: Users },
-        { label: "Categorias", href: "/categorias", icon: Folder },
-        { label: "Produtos", href: "/produtos", icon: Package },
-        { label: "Transações", href: "/transacoes", icon: ArrowRightLeft },
-        { label: "Compras", href: "/compras", icon: ShoppingCart },
-        { label: "Configurações", href: "/settings", icon: Settings },
+        { label: "Dashboard", href: "/dashboard", icon: Gauge, roles: ["ADMIN", "MANAGER", "USER"] },
+        { label: "Usuários", href: "/usuarios", icon: Users, roles: ["ADMIN"] },
+        { label: "Categorias", href: "/categorias", icon: Folder, roles: ["ADMIN", "MANAGER"] },
+        { label: "Produtos", href: "/produtos", icon: Package, roles: ["ADMIN", "MANAGER", "USER"] },
+        { label: "Transações", href: "/transacoes", icon: ArrowRightLeft, roles: ["ADMIN", "MANAGER"] },
+        { label: "Compras", href: "/compras", icon: ShoppingCart, roles: ["ADMIN", "MANAGER", "USER"] },
+        { label: "Configurações", href: "/settings", icon: Settings, roles: ["ADMIN"] },
     ];
+
+    // Filtra os itens baseado no role passado pela Sidebar
+    const filteredItems = items.filter((item) =>
+        role && item.roles.includes(role)
+    );
 
     return (
         <div className="flex flex-col h-full">
-            {/* Topo: usuário */}
-            <div className="p-4 border-b-2 flex items-center gap-3">
+            {/* Topo: Informações do Usuário */}
+            <div className="p-6 border-b-2 flex items-center gap-3">
                 <img
                     src="/avatar.png"
-                    alt="Usuário"
+                    alt="Avatar"
                     className="w-10 h-10 rounded-full"
                 />
-                <div>
-                    <p className="text-sm font-medium">Felipe</p>
-                    <p className="text-xs text-muted-foreground">Admin</p>
+                <div className="flex flex-col overflow-hidden">
+                    <p className="text-sm font-medium text-white truncate">
+                        {user?.firstName} {user?.lastName}
+                    </p>
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                        {role}
+                    </span>
                 </div>
             </div>
 
-            {/* Menu principal */}
-            <nav className="flex-1 flex flex-col gap-2 p-4">
-                {items.map((item) => {
+            {/* Navegação Principal */}
+            <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
+                {filteredItems.map((item) => {
                     const Icon = item.icon;
+                    const isActive = pathname.startsWith(item.href);
+
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors text-primary-foreground dark:text-slate-300",
-                                pathname.startsWith(item.href)
-                                    ? "bg-slate-200 dark:bg-slate-800"
+                                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                                isActive
+                                    ? "bg-blue-600 text-white"
                                     : "hover:bg-slate-300 dark:hover:bg-slate-700"
                             )}
                         >
-                            <Icon className="h-4 w-4" />
+                            <Icon className={cn("h-4 w-4", isActive ? "text-white" : "text-slate-500")} />
                             {item.label}
                         </Link>
                     );
                 })}
+
+                {/* Divisor Sutil antes do Sair */}
+                <div className="my-2 border-t-2" />
+
+                {/* Botão de Sair */}
+                <button
+                    onClick={() => signOut({ callbackUrl: "/auth/login" })}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 transition-all text-left"
+                >
+                    <LogOut className="h-4 w-4" />
+                    Sair da conta
+                </button>
             </nav>
 
-            {/* Footer: logo da empresa */}
-            <div className="p-4 flex items-center justify-center">
+            {/* Footer: Logo Inottec */}
+            <div className="p-6 border-t-2">
                 <img
                     src="/logo-inottec.png"
-                    alt="Logo da empresa"
-                    className="h-8 object-contain"
+                    alt="Inottec Logo"
+                    className="h-8 w-auto object-contain mx-auto"
                 />
             </div>
         </div>

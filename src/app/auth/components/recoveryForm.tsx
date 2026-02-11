@@ -6,9 +6,9 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { forgotPassword } from "@/api/password";
 import { useState, useEffect } from "react";
 import Swal from 'sweetalert2'
+import { forgotPassword } from "@/services/password";
 
 const recoverySchema = z.object({
     email: z.string().email("Formato inválido"),

@@ -2,8 +2,8 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
 import { useState } from "react";
-import LoginForm from "./components/loginForm";
-import RecoveryForm from "./components/recoveryForm";
+import LoginForm from "../components/loginForm";
+import RecoveryForm from "../components/recoveryForm";
 
 export default function AuthPage() {
     const [showRecovery, setShowRecovery] = useState(false);
