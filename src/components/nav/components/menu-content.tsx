@@ -30,11 +30,11 @@ function MenuContent({ role }: MenuContentProps) {
     // Definição dos itens com controle de permissão (RBAC)
     const items = [
         { label: "Dashboard", href: "/dashboard", icon: Gauge, roles: ["ADMIN", "MANAGER", "USER"] },
-        { label: "Usuários", href: "/usuarios", icon: Users, roles: ["ADMIN"] },
-        { label: "Categorias", href: "/categorias", icon: Folder, roles: ["ADMIN", "MANAGER"] },
-        { label: "Produtos", href: "/produtos", icon: Package, roles: ["ADMIN", "MANAGER", "USER"] },
-        { label: "Transações", href: "/transacoes", icon: ArrowRightLeft, roles: ["ADMIN", "MANAGER"] },
-        { label: "Compras", href: "/compras", icon: ShoppingCart, roles: ["ADMIN", "MANAGER", "USER"] },
+        { label: "Usuários", href: "/users", icon: Users, roles: ["ADMIN"] },
+        { label: "Categorias", href: "/categories", icon: Folder, roles: ["ADMIN", "MANAGER"] },
+        { label: "Produtos", href: "/products", icon: Package, roles: ["ADMIN", "MANAGER", "USER"] },
+        { label: "Transações", href: "/transactions", icon: ArrowRightLeft, roles: ["ADMIN", "MANAGER"] },
+        { label: "Compras", href: "/shopping", icon: ShoppingCart, roles: ["ADMIN", "MANAGER", "USER"] },
         { label: "Configurações", href: "/settings", icon: Settings, roles: ["ADMIN"] },
     ];
 
