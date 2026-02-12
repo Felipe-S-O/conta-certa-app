@@ -5,8 +5,11 @@ import { atom } from "jotai";
 export const userAtom = atom<User | null>(null);
 
 // Átomo assíncrono que depende do userAtom
+export const refreshUsersAtom = atom(0);
+
 export const usersByCompanyAtom = atom(async (get) => {
   const user = get(userAtom);
-  if (!user) return []; // se não tiver usuário logado, retorna lista vazia
+  const refresh = get(refreshUsersAtom); // dependência para forçar reload
+  if (!user) return [];
   return await usersByCompany(user.companyId);
 });

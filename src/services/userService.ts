@@ -29,3 +29,33 @@ export const usersByCompany = async (companyId: number): Promise<User[]> => {
   const { data } = await api.get(`/v1/users/company/${companyId}`);
   return data;
 };
+
+export const createUser = async (data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role: string;
+  companyId: number;
+}) => {
+  const res = await api.post("/v1/users", data);
+  return res.data;
+};
+
+export const updateUser = async (data: {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  companyId: number;
+  enabled: boolean;
+}) => {
+  const res = await api.put("/v1/users", data);
+  return res.data;
+};
+
+export const deleteUser = async (id: number) => {
+  const res = await api.delete(`/v1/users/${id}`);
+  return res.data;
+};
