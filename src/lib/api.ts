@@ -2,18 +2,29 @@ import axios from "axios";
 import { getSession } from "next-auth/react";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL, // URL da sua API definida no .env
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Interceptor para injetar o accessToken do Java em todas as chamadas
-api.interceptors.request.use(async (config) => {
-  const session = (await getSession()) as any;
+// Interceptor para injetar o token em todas as chamadas
+api.interceptors.request.use(
+  async (config) => {
+    const session = await getSession();
 
-  if (session?.accessToken) {
-    config.headers.Authorization = `Bearer ${session.accessToken}`;
-  }
+    // No seu NextAuth configuramos: session.accessToken
+    const token = session?.accessToken;
 
-  return config;
-});
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
 export default api;

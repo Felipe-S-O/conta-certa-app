@@ -1,4 +1,8 @@
-import api from "./auth";
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
 
 // Recuperação de senha
 export const forgotPassword = async (email: string) => {

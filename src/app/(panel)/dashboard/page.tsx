@@ -16,8 +16,8 @@ export default function Dashboard() {
                     Bem-vindo, Este conteúdo é exclusivo via Java Backend.
                 </p>
 
-                {/* Validação de ADMIN muito mais limpa */}
-                {session?.user && (session.user as any).role === "ADMIN" && (
+                {/* Validação de ADMIN usando session.role */}
+                {session?.role === "ADMIN" && (
                     <div className="mt-5 p-5 border-2 border-dashed border-red-500 rounded-lg bg-red-50 dark:bg-red-950/10">
                         <h3 className="text-red-600 font-bold text-lg">Zona de Administrador</h3>
                         <p className="text-red-500 text-sm">Tens permissões totais sobre o sistema.</p>

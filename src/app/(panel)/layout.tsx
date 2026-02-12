@@ -1,6 +1,6 @@
 "use client";
 import { Sidebar } from "@/components/nav/sidebar";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Loading from "../../components/loading";
@@ -12,23 +12,24 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/auth/login");
+            return;
         }
-    }, [status, router]);
 
-    // Importante: Não retorne null diretamente se quiser manter a estrutura do CSS
-    // Se o estilo global não pegar, pode ser porque o 'loading' remove a árvore do DOM
+        if (session?.error === "RefreshAccessTokenError") {
+            console.warn("Sessão expirada. Redirecionando...");
+            signOut({ callbackUrl: "/auth/login" });
+        }
+    }, [status, session, router]);
+
     if (status === "loading") {
         return <Loading />;
     }
 
-    if (!session?.user) return null;
+    if (!session?.accessToken) return null;
 
     return (
         <div className="flex min-h-screen">
-            {/* Sidebar fixa */}
-            <Sidebar role={(session.user as any)?.role} />
-
-            {/* O bg-transparent garante que o fundo venha do globals.css (body) */}
+            <Sidebar role={session.role} />
             <main className="flex-1 lg:ml-64 bg-transparent">
                 {children}
             </main>
