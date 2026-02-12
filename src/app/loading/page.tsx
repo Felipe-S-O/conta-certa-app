@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
 import { userAtom } from "@/atoms/userAtom";
-import { getUserByEmail } from "@/services/user";
+import { getUserByEmail } from "@/services/userService";
 import { useSession } from "next-auth/react";
 import Loading from "@/components/loading";
 

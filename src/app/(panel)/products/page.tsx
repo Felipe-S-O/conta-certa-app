@@ -1,34 +1,68 @@
-"use client"
-
-import { useSession } from "next-auth/react";
+"use client";
+import { useAtom } from "jotai";
 import TopNav from "@/components/nav/top-nav";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { productsByCompanyAtom } from "@/atoms/productAtom";
+import Loading from "@/components/loading";
+import { Edit } from "lucide-react";
 
 const ProductsPage = () => {
     const { data: session } = useSession();
+    const [products] = useAtom(productsByCompanyAtom);
+
+    const [showLoading, setShowLoading] = useState(true);
+    useEffect(() => {
+        const timer = setTimeout(() => setShowLoading(false), 2000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    const canManage = session?.role === "ADMIN" || session?.role === "MANAGER";
 
     return (
         <div className="p-10 font-sans">
             <TopNav title="Produtos" />
 
             <main className="mt-8">
-                <h2 className="text-2xl font-bold">Conteúdo Protegido</h2>
-                <p className="text-slate-600">
-                    Bem-vindo, Este conteúdo é exclusivo via Java Backend.
-                </p>
+                <div className="mt-8">
+                    <h3 className="text-lg font-semibold">Lista de Produtos</h3>
 
-                {/* Validação de ADMIN usando session.role */}
-                {session?.role === "ADMIN" && (
-                    <div className="mt-5 p-5 border-2 border-dashed border-red-500 rounded-lg bg-red-50 dark:bg-red-950/10">
-                        <h3 className="text-red-600 font-bold text-lg">Zona de Administrador</h3>
-                        <p className="text-red-500 text-sm">Tens permissões totais sobre o sistema.</p>
-                        <button className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-                            Gerir Utilizadores
-                        </button>
-                    </div>
-                )}
+                    {showLoading ? (
+                        <Loading />
+                    ) : (
+                        <ul className="mt-3 space-y-2">
+                            {products?.map((p) => (
+                                <li
+                                    key={p.id}
+                                    className="p-2 border rounded flex justify-between items-center"
+                                >
+                                    <div>
+                                        <p className="font-bold">{p.name}</p>
+                                        <p className="text-sm text-slate-600">Código: {p.code}</p>
+                                        <p className="text-xs text-slate-500">
+                                            Criado em: {new Date(p.createdAt).toLocaleString()}
+                                        </p>
+                                    </div>
+
+                                    {canManage && (
+                                        <div className="flex gap-2">
+                                            <button
+                                                aria-label="Editar produto"
+                                                className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                                onClick={() => console.log("Editar produto", p.id)}
+                                            >
+                                                <Edit size={18} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
             </main>
         </div>
     );
-}
+};
 
 export default ProductsPage;

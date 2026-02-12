@@ -3,13 +3,13 @@ import { useAtom } from "jotai";
 import TopNav from "@/components/nav/top-nav";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { transactionsByCompanyAtom } from "@/atoms/transactionAtom";
+import { purchasesByCompanyAtom } from "@/atoms/purchaseAtom";
 import Loading from "@/components/loading";
 import { Edit, Trash2 } from "lucide-react";
 
-const TransactionsPage = () => {
+const PurchasesPage = () => {
     const { data: session } = useSession();
-    const [transactions] = useAtom(transactionsByCompanyAtom);
+    const [purchases] = useAtom(purchasesByCompanyAtom);
 
     const [showLoading, setShowLoading] = useState(true);
     useEffect(() => {
@@ -17,11 +17,11 @@ const TransactionsPage = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    const canManage = session?.role === "ADMIN" || session?.role === "MANAGER";
+    const canManage = session?.role === "ADMIN" || session?.role === "MANAGER" || session?.role === "USER";
 
     return (
         <div className="p-10 font-sans">
-            <TopNav title="Lista de Transações" />
+            <TopNav title="Lista de Compras" />
 
             <main className="mt-8">
                 <div>
@@ -30,37 +30,34 @@ const TransactionsPage = () => {
                         <Loading />
                     ) : (
                         <ul className="mt-3 space-y-2">
-                            {transactions?.map((t) => (
+                            {purchases?.map((p) => (
                                 <li
-                                    key={t.id}
+                                    key={p.id}
                                     className="p-2 border rounded flex justify-between items-center"
                                 >
                                     <div>
-                                        <p className="font-bold">{t.description}</p>
+                                        <p className="font-bold">Compra #{p.id}</p>
                                         <p className="text-sm text-slate-600">
-                                            Tipo: {t.type} | Status: {t.status}
-                                        </p>
-                                        <p className="text-sm text-slate-600">
-                                            Valor: R$ {t.amount.toFixed(2)} | Taxa: R$ {t.fee.toFixed(2)}
+                                            Data: {p.date} | Total: R$ {p.total.toFixed(2)}
                                         </p>
                                         <p className="text-xs text-slate-500">
-                                            Data: {t.date} | Vencimento: {t.dueDate}
+                                            Criado por usuário {p.createdBy}
                                         </p>
                                     </div>
 
                                     {canManage && (
                                         <div className="flex gap-4">
                                             <button
-                                                aria-label="Editar transação"
+                                                aria-label="Editar compra"
                                                 className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                                                onClick={() => console.log("Editar transação", t.id)}
+                                                onClick={() => console.log("Editar compra", p.id)}
                                             >
                                                 <Edit size={18} />
                                             </button>
                                             <button
-                                                aria-label="Excluir transação"
+                                                aria-label="Excluir compra"
                                                 className="p-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                                                onClick={() => console.log("Excluir transação", t.id)}
+                                                onClick={() => console.log("Excluir compra", p.id)}
                                             >
                                                 <Trash2 size={18} />
                                             </button>
@@ -76,4 +73,4 @@ const TransactionsPage = () => {
     );
 };
 
-export default TransactionsPage;
+export default PurchasesPage;

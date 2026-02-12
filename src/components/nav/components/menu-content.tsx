@@ -34,8 +34,8 @@ function MenuContent({ role }: MenuContentProps) {
         { label: "Categorias", href: "/categories", icon: Folder, roles: ["ADMIN", "MANAGER"] },
         { label: "Produtos", href: "/products", icon: Package, roles: ["ADMIN", "MANAGER", "USER"] },
         { label: "Transações", href: "/transactions", icon: ArrowRightLeft, roles: ["ADMIN", "MANAGER"] },
-        { label: "Compras", href: "/shopping", icon: ShoppingCart, roles: ["ADMIN", "MANAGER", "USER"] },
-        { label: "Configurações", href: "/settings", icon: Settings, roles: ["ADMIN"] },
+        { label: "Compras", href: "/purchases", icon: ShoppingCart, roles: ["ADMIN", "MANAGER", "USER"] },
+        // { label: "Configurações", href: "/settings", icon: Settings, roles: ["ADMIN"] },
     ];
 
     // Filtra os itens baseado no role passado pela Sidebar
