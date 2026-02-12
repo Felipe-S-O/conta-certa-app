@@ -1,35 +1,35 @@
 "use client";
 import { Sidebar } from "@/components/nav/sidebar";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation"; // Importação corrigida
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Loading from "./loading";
 
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
     const { status, data: session } = useSession();
     const router = useRouter();
 
-    // Redirecionamento deve ser feito dentro de um useEffect para evitar erros de renderização
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/auth/login");
         }
     }, [status, router]);
 
-    // 1. Enquanto carrega, retorna null para o Next.js mostrar o loading.tsx
-    if (status === "loading") return null;
-
-    // 2. Proteção extra caso não haja sessão
-    if (!session || !session.user) {
-        return null; // O useEffect acima cuidará do push
+    // Importante: Não retorne null diretamente se quiser manter a estrutura do CSS
+    // Se o estilo global não pegar, pode ser porque o 'loading' remove a árvore do DOM
+    if (status === "loading") {
+        return <Loading />;
     }
+
+    if (!session?.user) return null;
 
     return (
         <div className="flex min-h-screen">
-            {/* 3. Pegando o role com segurança da session */}
+            {/* Sidebar fixa */}
             <Sidebar role={(session.user as any)?.role} />
 
-            {/* lg:ml-64 deve bater com a largura da sua sidebar desktop */}
-            <main className="flex-1 lg:ml-64 bg-gray-50">
+            {/* O bg-transparent garante que o fundo venha do globals.css (body) */}
+            <main className="flex-1 lg:ml-64 bg-transparent">
                 {children}
             </main>
         </div>

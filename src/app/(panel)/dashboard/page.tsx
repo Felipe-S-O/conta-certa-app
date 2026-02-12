@@ -7,19 +7,23 @@ export default function Dashboard() {
     const { data: session } = useSession();
 
     return (
-        <div style={{ padding: "40px", fontFamily: "sans-serif" }}>
+        <div className="p-10 font-sans">
             <TopNav title="Dashboard" />
 
+            <main className="mt-8">
+                <h2 className="text-2xl font-bold">Conteúdo Protegido</h2>
+                <p className="text-slate-600">
+                    Bem-vindo, Este conteúdo é exclusivo via Java Backend.
+                </p>
 
-            <main style={{ marginTop: "30px" }}>
-                <h2>Conteúdo Protegido</h2>
-                <p>Este conteúdo só é visível porque estás autenticado via Java Backend.</p>
-
+                {/* Validação de ADMIN muito mais limpa */}
                 {session?.user && (session.user as any).role === "ADMIN" && (
-                    <div style={{ marginTop: "20px", padding: "20px", border: "2px dashed #ef4444", borderRadius: "8px" }}>
-                        <h3 style={{ color: "#ef4444" }}>Zona de Administrador</h3>
-                        <p>Tens permissões totais sobre o sistema.</p>
-                        <button>Gerir Utilizadores</button>
+                    <div className="mt-5 p-5 border-2 border-dashed border-red-500 rounded-lg bg-red-50 dark:bg-red-950/10">
+                        <h3 className="text-red-600 font-bold text-lg">Zona de Administrador</h3>
+                        <p className="text-red-500 text-sm">Tens permissões totais sobre o sistema.</p>
+                        <button className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
+                            Gerir Utilizadores
+                        </button>
                     </div>
                 )}
             </main>
