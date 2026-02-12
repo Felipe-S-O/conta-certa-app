@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Tipagem do usuário conforme sua API
 export interface User {
   id: number;
   firstName: string;
@@ -12,21 +11,30 @@ export interface User {
   updatedAt: string;
 }
 
+// Criamos a instância com uma verificação simples
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Buscar usuário por email
 export const getUserByEmail = async (
   email: string,
   token: string,
 ): Promise<User> => {
+  // Verificação de segurança para evitar chamadas inválidas ao Java
+  if (!email || !token || token === "undefined") {
+    throw new Error("Email ou Token não fornecidos para a busca de usuário.");
+  }
+
   const { data } = await api.get<User>(`/v1/users/email/${email}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  return data; // retorna objeto tipado User
+
+  return data;
 };
 
 export default api;

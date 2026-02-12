@@ -53,7 +53,7 @@ function MenuContent({ role }: MenuContentProps) {
                     className="w-10 h-10 rounded-full"
                 />
                 <div className="flex flex-col overflow-hidden">
-                    <p className="text-sm font-medium text-white truncate">
+                    <p className="text-sm font-medium truncate">
                         {user?.firstName} {user?.lastName}
                     </p>
                     <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">

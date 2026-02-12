@@ -50,8 +50,8 @@ export default function LoginForm({
                 toast.error("Erro ao logar! Verifique as credenciais.");
             } else {
                 toast.success("Login realizado com sucesso!");
-                // router.push("/loading");
-                router.push("/dashboard");
+                router.push("/loading");
+                // router.push("/dashboard");
                 router.refresh();
             }
         } catch (err: any) {

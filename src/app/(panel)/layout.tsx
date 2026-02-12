@@ -3,7 +3,7 @@ import { Sidebar } from "@/components/nav/sidebar";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Loading from "./loading";
+import Loading from "../../components/loading";
 
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
     const { status, data: session } = useSession();
