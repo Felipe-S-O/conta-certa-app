@@ -3,19 +3,23 @@ import { atom } from "jotai";
 import { productsByCompany } from "@/services/productService";
 import { getSession } from "next-auth/react";
 
+export const refreshProductsAtom = atom(0);
+
 export const productsByCompanyAtom = atom(async (get) => {
-  // 1. Busca a sessão atualizada (lê direto do cookie/JWT)
+  // 1. Dependência para forçar reload
+  const refresh = get(refreshProductsAtom);
+
+  // 2. Busca a sessão atualizada
   const session = await getSession();
 
-  // 2. Verifica se existe o companyId na sessão
+  // 3. Verifica se existe o companyId
   const companyId = session?.user?.companyId;
-
   if (!companyId) {
     console.warn("Nenhum companyId encontrado na sessão.");
     return [];
   }
 
-  // 3. Busca os produto no backend Java
+  // 4. Busca os usuários no backend
   try {
     return await productsByCompany(companyId);
   } catch (error) {
