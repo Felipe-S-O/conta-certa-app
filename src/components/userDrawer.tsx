@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -67,6 +67,12 @@ interface UserDrawerProps {
     onClose: () => void;
 }
 
+const USER_ROLES = [
+    { id: "ADMIN", nome: "ADMIN - Gestor Total" },
+    { id: "MANAGER", nome: "MANAGER - Gerente" },
+    { id: "USER", nome: "USER - Operador" },
+];
+
 export default function UserDrawer({ user, open, onClose }: UserDrawerProps) {
     const { data: session } = useSession();
     const [, setRefresh] = useAtom(refreshUsersAtom);
@@ -75,36 +81,40 @@ export default function UserDrawer({ user, open, onClose }: UserDrawerProps) {
     const form = useForm<UserFormData>({
         resolver: zodResolver(userSchema),
         defaultValues: {
-            firstName: "",
-            lastName: "",
-            email: "",
+            firstName: user?.firstName || "",
+            lastName: user?.lastName || "",
+            email: user?.email || "",
             password: "",
-            role: "USER",
+            role: user?.role || "USER",
             enabled: true,
         },
     });
 
     useEffect(() => {
-        if (open) {
-            if (user) {
-                form.reset({
-                    ...user,
-                    password: "", // limpa senha na edição
-                    companyId: user.companyId ?? companyId,
-                });
-            } else {
-                form.reset({
-                    firstName: "",
-                    lastName: "",
-                    email: "",
-                    password: "",
-                    role: "USER",
-                    companyId,
-                    enabled: true,
-                });
-            }
+
+        if (!open && !user) {
+            form.reset({
+                firstName: "",
+                lastName: "",
+                email: "",
+                password: "",
+                role: "USER",
+                enabled: true,
+            });
         }
-    }, [user, open, companyId, form]);
+
+        if (user?.id) {
+            form.reset({
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                password: "",
+                role: user.role,
+                enabled: true,
+                id: user.id,
+            });
+        }
+    }, [user, open, form]);
 
     const onSubmit = async (data: UserFormData) => {
         try {
@@ -226,9 +236,11 @@ export default function UserDrawer({ user, open, onClose }: UserDrawerProps) {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="ADMIN">ADMIN - Gestor Total</SelectItem>
-                                                <SelectItem value="MANAGER">MANAGER - Gerente</SelectItem>
-                                                <SelectItem value="USER">USER - Operador</SelectItem>
+                                                {USER_ROLES.map((role) => (
+                                                    <SelectItem key={role.id} value={role.id}>
+                                                        {role.nome}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />

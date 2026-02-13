@@ -99,6 +99,7 @@ const UsersPage = () => {
                 open={drawerOpen}
                 onClose={() => {
                     setDrawerOpen(false);
+                    setSelectedUser(null);
                 }}
             />
         </div>
