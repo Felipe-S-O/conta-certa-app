@@ -1,45 +1,31 @@
-import NextAuth from "next-auth";
+import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-// 1. Função de Refresh
 async function refreshAccessToken(token) {
     try {
-        const username = token.email;
-        console.log("Renovando token para:", username);
-
         const response = await axios.put(
-            `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/refresh/${username}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/refresh/${token.email}`,
             {},
-            {
-                headers: {
-                    Authorization: `Bearer ${token.refreshToken}`,
-                },
-            }
+            { headers: { Authorization: `Bearer ${token.refreshToken}` } }
         );
 
-        const data = response.data; // Esperado: { accessToken: "...", refreshToken: "..." }
-        const decoded = jwtDecode(data.accessToken);
+        const { accessToken, refreshToken } = response.data;
+        const decoded = jwtDecode(accessToken);
 
         return {
             ...token,
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken ?? token.refreshToken,
+            accessToken,
+            refreshToken: refreshToken ?? token.refreshToken,
             exp: decoded.exp,
         };
     } catch (error) {
-        console.error("Erro ao renovar token:", error);
-        return {
-            ...token,
-            accessToken: null, // força logout se falhar
-            error: "RefreshAccessTokenError",
-        };
+        return { ...token, accessToken: "", error: "RefreshAccessTokenError" };
     }
 }
 
-// 2. Configuração do NextAuth
-const handler = NextAuth({
+export const authOptions = {
     providers: [
         CredentialsProvider({
             name: "Java Backend",
@@ -49,64 +35,59 @@ const handler = NextAuth({
             },
             async authorize(credentials) {
                 try {
-                    const response = await axios.post(
-                        `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/login`,
-                        {
-                            email: credentials?.email,
-                            password: credentials?.password,
-                        }
-                    );
-
-                    if (response.data) return response.data;
-                    return null;
+                    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/v1/auth/login`, {
+                        email: credentials?.email,
+                        password: credentials?.password,
+                    });
+                    return res.data; // Retorna { accessToken, refreshToken }
                 } catch (error) {
-                    console.error("Erro no login:", error);
                     return null;
                 }
             },
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
-            // Login inicial
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 const decoded = jwtDecode(user.accessToken);
                 return {
                     accessToken: user.accessToken,
                     refreshToken: user.refreshToken,
                     email: decoded.sub,
-                    role: decoded.roles ?? decoded.role, // fallback
+                    role: decoded.roles ?? decoded.role,
                     exp: decoded.exp,
                 };
             }
 
-            // Verifica se falta 1 minuto para expirar
-            const nowInSeconds = Math.floor(Date.now() / 1000);
-            const shouldRefreshTime = token.exp - 60;
+            // IMPORTANTE: Atualiza o JWT com os dados do banco enviados pelo front
+            if (trigger === "update" && session) {
+                return { ...token, ...session };
+            }
 
-            if (nowInSeconds >= shouldRefreshTime) {
+            const nowInSeconds = Math.floor(Date.now() / 1000);
+            if (nowInSeconds >= token.exp - 60) {
                 return await refreshAccessToken(token);
             }
 
             return token;
         },
         async session({ session, token }) {
-            // Melhor manter fora de session.user
             session.accessToken = token.accessToken;
-            session.email = token.email;
-            session.role = token.role;
-            // @ts-ignore
             session.error = token.error;
-
+            session.user = {
+                id: token.id,
+                firstName: token.firstName,
+                lastName: token.lastName,
+                companyId: token.companyId,
+                role: token.role,
+                email: token.email
+            };
             return session;
         },
     },
     session: { strategy: "jwt" },
     secret: process.env.NEXTAUTH_SECRET,
-    pages: {
-        signIn: "/auth/login",
-    },
-});
+};
 
-// 3. Exportação explícita
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

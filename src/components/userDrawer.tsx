@@ -1,5 +1,13 @@
 "use client";
+
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+
+// UI Components
 import {
     Drawer,
     DrawerContent,
@@ -10,10 +18,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createUser, updateUser } from "@/services/userService";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Form,
     FormField,
@@ -22,10 +27,6 @@ import {
     FormControl,
     FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
-import { useAtom } from "jotai";
-import { userAtom } from "@/atoms/userAtom";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Select,
     SelectTrigger,
@@ -33,6 +34,9 @@ import {
     SelectItem,
     SelectValue,
 } from "@/components/ui/select";
+import { createUser, updateUser } from "@/services/userService";
+import { useAtom } from "jotai";
+import { refreshUsersAtom } from "@/atoms/userAtom";
 
 // Schema de validação
 const userSchema = z.object({
@@ -40,25 +44,33 @@ const userSchema = z.object({
     firstName: z.string().min(2, "Primeiro nome obrigatório"),
     lastName: z.string().min(2, "Sobrenome obrigatório"),
     email: z.string().email("Email inválido"),
-    password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres").optional(),
+    password: z.string().optional(), // senha opcional
     role: z.enum(["ADMIN", "MANAGER", "USER"]),
     companyId: z.number().optional(),
     enabled: z.boolean().optional(),
+}).refine((data) => {
+    // Se for criação (sem id), senha deve ter pelo menos 6 caracteres
+    if (!data.id && (!data.password || data.password.length < 6)) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Senha deve ter pelo menos 6 caracteres",
+    path: ["password"],
 });
 
 type UserFormData = z.infer<typeof userSchema>;
 
-export default function UserDrawer({
-    user,
-    open,
-    onClose,
-}: {
+interface UserDrawerProps {
     user?: UserFormData;
     open: boolean;
     onClose: () => void;
-}) {
-    const [loggedUser] = useAtom(userAtom);
-    const companyId = loggedUser?.companyId ?? 0;
+}
+
+export default function UserDrawer({ user, open, onClose }: UserDrawerProps) {
+    const { data: session } = useSession();
+    const [, setRefresh] = useAtom(refreshUsersAtom);
+    const companyId = session?.user?.companyId;
 
     const form = useForm<UserFormData>({
         resolver: zodResolver(userSchema),
@@ -68,37 +80,35 @@ export default function UserDrawer({
             email: "",
             password: "",
             role: "USER",
-            companyId,
             enabled: true,
         },
     });
 
     useEffect(() => {
-        if (user) {
-            form.reset({
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                companyId: user.companyId,
-                enabled: user.enabled,
-            });
-        } else {
-            form.reset({
-                firstName: "",
-                lastName: "",
-                email: "",
-                password: "",
-                role: "USER",
-                companyId,
-                enabled: true,
-            });
+        if (open) {
+            if (user) {
+                form.reset({
+                    ...user,
+                    password: "", // limpa senha na edição
+                    companyId: user.companyId ?? companyId,
+                });
+            } else {
+                form.reset({
+                    firstName: "",
+                    lastName: "",
+                    email: "",
+                    password: "",
+                    role: "USER",
+                    companyId,
+                    enabled: true,
+                });
+            }
         }
-    }, [user, form, companyId]);
+    }, [user, open, companyId, form]);
 
     const onSubmit = async (data: UserFormData) => {
         try {
+
             if (data.id) {
                 await updateUser({
                     id: data.id,
@@ -106,10 +116,12 @@ export default function UserDrawer({
                     lastName: data.lastName,
                     email: data.email,
                     role: data.role,
-                    enabled: data.enabled ?? true,
-                    companyId,
+                    enabled: true,
+                    companyId: companyId as number
                 });
-                toast.success("Usuário atualizado com sucesso!");
+
+                toast.success("Usuário atualizado!");
+
             } else {
                 await createUser({
                     firstName: data.firstName,
@@ -117,33 +129,36 @@ export default function UserDrawer({
                     email: data.email,
                     password: data.password!,
                     role: data.role,
-                    companyId,
+                    companyId: companyId as number
                 });
                 toast.success("Usuário criado com sucesso!");
             }
+
+            // força reload da lista
+            setRefresh((r) => r + 1);
+
             onClose();
-        } catch (error) {
-            toast.error("Erro ao salvar usuário!");
+        } catch (error: any) {
+            const backendError = error.response?.data?.message || error.message || "Erro interno";
+            toast.error(`Falha no servidor: ${backendError}`);
         }
     };
 
     return (
         <Drawer open={open} onOpenChange={onClose}>
-            <DrawerContent>
-                <DrawerHeader>
-                    <DrawerTitle>{user?.id ? "Editar Usuário" : "Adicionar Usuário"}</DrawerTitle>
-                    {/* Botão de fechar no topo */}
+            <DrawerContent className="max-w-2xl mx-auto">
+                <DrawerHeader className="relative border-b">
+                    <DrawerTitle className="text-xl font-bold">
+                        {user?.id ? "Editar Usuário" : "Novo Usuário"}
+                    </DrawerTitle>
                     <DrawerClose asChild>
-                        <Button variant="ghost" className="absolute right-2 top-2">
-                            ✕
-                        </Button>
+                        <Button variant="ghost" className="absolute right-4 top-4 h-8 w-8 p-0">✕</Button>
                     </DrawerClose>
                 </DrawerHeader>
 
-                {/* ScrollArea para rolagem */}
-                <ScrollArea className="h-[60vh] px-4">
+                <ScrollArea className="h-[60vh] px-6 py-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form id="user-form" onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormField
                                 control={form.control}
                                 name="firstName"
@@ -151,7 +166,7 @@ export default function UserDrawer({
                                     <FormItem>
                                         <FormLabel>Primeiro Nome</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Digite o primeiro nome" {...field} />
+                                            <Input placeholder="Ex: João" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -164,7 +179,7 @@ export default function UserDrawer({
                                     <FormItem>
                                         <FormLabel>Sobrenome</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Digite o sobrenome" {...field} />
+                                            <Input placeholder="Ex: Silva" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -174,51 +189,48 @@ export default function UserDrawer({
                                 control={form.control}
                                 name="email"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email</FormLabel>
+                                    <FormItem className="md:col-span-2">
+                                        <FormLabel>E-mail Profissional</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Digite o email" {...field} />
+                                            <Input type="email" placeholder="usuario@empresa.com" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {!user?.id && (
-                                <FormField
-                                    control={form.control}
-                                    name="password"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Senha</FormLabel>
-                                            <FormControl>
-                                                <Input type="password" placeholder="Digite a senha" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            )}
+                            {!user?.id && <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem className="md:col-span-2">
+                                        <FormLabel>
+                                            Senha de Acesso
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input type="password" placeholder="Mínimo 6 caracteres" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />}
                             <FormField
                                 control={form.control}
                                 name="role"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Role</FormLabel>
-                                        <FormControl>
-                                            <Select
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Selecione o papel" />
+                                    <FormItem className="md:col-span-2">
+                                        <FormLabel>Perfil de Acesso</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione um nível" />
                                                 </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="ADMIN">ADMIN</SelectItem>
-                                                    <SelectItem value="MANAGER">MANAGER</SelectItem>
-                                                    <SelectItem value="USER">USER</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="ADMIN">ADMIN - Gestor Total</SelectItem>
+                                                <SelectItem value="MANAGER">MANAGER - Gerente</SelectItem>
+                                                <SelectItem value="USER">USER - Operador</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -227,18 +239,17 @@ export default function UserDrawer({
                     </Form>
                 </ScrollArea>
 
-                <DrawerFooter>
+                <DrawerFooter className="flex-row justify-end gap-3 border-t p-6">
+                    <Button variant="outline" onClick={onClose} type="button">
+                        Cancelar
+                    </Button>
                     <Button
+                        form="user-form"
                         type="submit"
                         disabled={form.formState.isSubmitting}
-                        className="text-white"
-                        onClick={form.handleSubmit(onSubmit)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                        {form.formState.isSubmitting
-                            ? "Salvando..."
-                            : user?.id
-                                ? "Salvar Alterações"
-                                : "Criar Usuário"}
+                        {form.formState.isSubmitting ? "Processando..." : user?.id ? "Salvar Alterações" : "Cadastrar Usuário"}
                     </Button>
                 </DrawerFooter>
             </DrawerContent>

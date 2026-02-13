@@ -1,15 +1,28 @@
-import { User, usersByCompany } from "@/services/userService";
 import { atom } from "jotai";
+import { getSession } from "next-auth/react";
+import { usersByCompany } from "@/services/userService";
 
-// Átomo com usuário logado (já existe)
-export const userAtom = atom<User | null>(null);
-
-// Átomo assíncrono que depende do userAtom
 export const refreshUsersAtom = atom(0);
 
 export const usersByCompanyAtom = atom(async (get) => {
-  const user = get(userAtom);
-  const refresh = get(refreshUsersAtom); // dependência para forçar reload
-  if (!user) return [];
-  return await usersByCompany(user.companyId);
+  // 1. Dependência para forçar reload
+  const refresh = get(refreshUsersAtom);
+
+  // 2. Busca a sessão atualizada
+  const session = await getSession();
+
+  // 3. Verifica se existe o companyId
+  const companyId = session?.user?.companyId;
+  if (!companyId) {
+    console.warn("Nenhum companyId encontrado na sessão.");
+    return [];
+  }
+
+  // 4. Busca os usuários no backend
+  try {
+    return await usersByCompany(companyId);
+  } catch (error) {
+    console.error("Erro ao buscar usuários por empresa:", error);
+    return [];
+  }
 });

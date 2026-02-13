@@ -17,7 +17,7 @@ const PurchasesPage = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    const canManage = session?.role === "ADMIN" || session?.role === "MANAGER" || session?.role === "USER";
+    const canManage = session?.user.role === "ADMIN" || session?.user.role === "MANAGER" || session?.user.role === "USER";
 
     return (
         <div className="p-10 font-sans">

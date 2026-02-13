@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useAtomValue } from "jotai";
-import { userAtom } from "@/atoms/userAtom";
+import { useSession, signOut } from "next-auth/react"; // Importação da session
 
 // Ícones
 import {
@@ -17,15 +16,17 @@ import {
     ArrowRightLeft,
     LogOut,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
 
 interface MenuContentProps {
-    role?: string; // Recebido da Sidebar
+    role?: string;
 }
 
 function MenuContent({ role }: MenuContentProps) {
     const pathname = usePathname();
-    const user = useAtomValue(userAtom);
+
+    // Pegamos os dados diretamente da session do NextAuth
+    const { data: session } = useSession();
+    const user = session?.user;
 
     // Definição dos itens com controle de permissão (RBAC)
     const items = [
@@ -35,29 +36,32 @@ function MenuContent({ role }: MenuContentProps) {
         { label: "Produtos", href: "/products", icon: Package, roles: ["ADMIN", "MANAGER", "USER"] },
         { label: "Transações", href: "/transactions", icon: ArrowRightLeft, roles: ["ADMIN", "MANAGER"] },
         { label: "Compras", href: "/purchases", icon: ShoppingCart, roles: ["ADMIN", "MANAGER", "USER"] },
-        // { label: "Configurações", href: "/settings", icon: Settings, roles: ["ADMIN"] },
     ];
 
-    // Filtra os itens baseado no role passado pela Sidebar
     const filteredItems = items.filter((item) =>
         role && item.roles.includes(role)
     );
 
     return (
         <div className="flex flex-col h-full">
-            {/* Topo: Informações do Usuário */}
+            {/* Topo: Informações do Usuário vindas da Session */}
             <div className="p-6 border-b-2 flex items-center gap-3">
-                <img
-                    src="/avatar.png"
-                    alt="Avatar"
-                    className="w-10 h-10 rounded-full"
-                />
+                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border">
+                    <img
+                        src="/avatar.png"
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                        // Fallback caso a imagem falhe
+                        onError={(e) => (e.currentTarget.src = "https://ui-avatars.com/api/?name=" + user?.firstName)}
+                    />
+                </div>
                 <div className="flex flex-col overflow-hidden">
                     <p className="text-sm font-medium truncate">
+                        {/* Acessando os dados que salvamos via update() */}
                         {user?.firstName} {user?.lastName}
                     </p>
                     <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">
-                        {role}
+                        {role || user?.role}
                     </span>
                 </div>
             </div>
@@ -75,8 +79,8 @@ function MenuContent({ role }: MenuContentProps) {
                             className={cn(
                                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
                                 isActive
-                                    ? "bg-blue-600 text-white"
-                                    : "hover:bg-slate-300 dark:hover:bg-slate-700"
+                                    ? "bg-blue-600 text-white shadow-md"
+                                    : "hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
                             )}
                         >
                             <Icon className={cn("h-4 w-4", isActive ? "text-white" : "text-slate-500")} />
@@ -85,10 +89,8 @@ function MenuContent({ role }: MenuContentProps) {
                     );
                 })}
 
-                {/* Divisor Sutil antes do Sair */}
-                <div className="my-2 border-t-2" />
+                <div className="my-2 border-t" />
 
-                {/* Botão de Sair */}
                 <button
                     onClick={() => signOut({ callbackUrl: "/auth/login" })}
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 transition-all text-left"
@@ -98,8 +100,8 @@ function MenuContent({ role }: MenuContentProps) {
                 </button>
             </nav>
 
-            {/* Footer: Logo Inottec */}
-            <div className="p-6 border-t-2">
+            {/* Footer */}
+            <div className="p-6 border-t">
                 <img
                     src="/logo-inottec.png"
                     alt="Inottec Logo"

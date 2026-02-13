@@ -1,24 +1,22 @@
 "use client";
 import { useAtom } from "jotai";
-import { usersByCompanyAtom, refreshUsersAtom } from "@/atoms/userAtom";
+import { usersByCompanyAtom } from "@/atoms/userAtom";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import TopNav from "@/components/nav/top-nav";
 import Loading from "@/components/loading";
 import { Edit, Plus, Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
-import { deleteUser } from "@/services/userService";
 import UserDrawer from "@/components/userDrawer";
+import { deleteUser } from "@/services/userService";
 
 const UsersPage = () => {
     const { data: session } = useSession();
     const [users] = useAtom(usersByCompanyAtom);
-    const [, setRefresh] = useAtom(refreshUsersAtom);
-
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<any>(null);
 
-    const canManage = session?.role === "ADMIN";
+    const canManage = session?.user.role === "ADMIN";
 
     const handleDelete = async (id: number) => {
         const result = await Swal.fire({
@@ -36,7 +34,6 @@ const UsersPage = () => {
             try {
                 await deleteUser(id);
                 Swal.fire("Excluído!", "O usuário foi removido com sucesso.", "success");
-                setRefresh((r) => r + 1); // força reload da lista
             } catch (error) {
                 Swal.fire("Erro!", "Não foi possível excluir o usuário.", "error");
             }
@@ -102,7 +99,6 @@ const UsersPage = () => {
                 open={drawerOpen}
                 onClose={() => {
                     setDrawerOpen(false);
-                    setRefresh((r) => r + 1); // força reload ao fechar o drawer
                 }}
             />
         </div>

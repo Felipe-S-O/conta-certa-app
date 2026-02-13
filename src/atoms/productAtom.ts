@@ -1,10 +1,25 @@
 // atoms/productAtom.ts
 import { atom } from "jotai";
-import { Product, productsByCompany } from "@/services/productService";
-import { userAtom } from "@/atoms/userAtom";
+import { productsByCompany } from "@/services/productService";
+import { getSession } from "next-auth/react";
 
 export const productsByCompanyAtom = atom(async (get) => {
-  const user = get(userAtom);
-  if (!user) return [];
-  return await productsByCompany(user.companyId);
+  // 1. Busca a sessão atualizada (lê direto do cookie/JWT)
+  const session = await getSession();
+
+  // 2. Verifica se existe o companyId na sessão
+  const companyId = session?.user?.companyId;
+
+  if (!companyId) {
+    console.warn("Nenhum companyId encontrado na sessão.");
+    return [];
+  }
+
+  // 3. Busca os produto no backend Java
+  try {
+    return await productsByCompany(companyId);
+  } catch (error) {
+    console.error("Erro ao buscar produto por empresa:", error);
+    return [];
+  }
 });
