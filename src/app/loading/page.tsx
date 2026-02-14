@@ -22,20 +22,19 @@ export default function LoadingPage() {
 
             const fetchData = async () => {
                 try {
-                    const userData = await getUserByEmail(email);
+                    // const userData = await getUserByEmail(email);
 
-                    // 2. Salva na Session do NextAuth (Persistência no Cookie para F5)
-                    await update({
-                        id: userData.id,
-                        firstName: userData.firstName,
-                        lastName: userData.lastName,
-                        companyId: userData.companyId,
-                        role: userData.role
-                    });
+                    // // 2. Salva na Session do NextAuth (Persistência no Cookie para F5)
+                    // await update({
+                    //     id: userData.id,
+                    //     firstName: userData.firstName,
+                    //     lastName: userData.lastName,
+                    //     companyId: userData.companyId,
+                    //     role: userData.role
+                    // });
 
                     router.push("/dashboard");
                 } catch (err) {
-                    console.error("Erro ao carregar dados do usuário", err);
                     router.push("/auth/login");
                 }
             };
