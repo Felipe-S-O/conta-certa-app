@@ -68,9 +68,9 @@ interface UserDrawerProps {
 }
 
 const USER_ROLES = [
-    { id: "ADMIN", nome: "ADMIN - Gestor Total" },
-    { id: "MANAGER", nome: "MANAGER - Gerente" },
-    { id: "USER", nome: "USER - Operador" },
+    { id: "ADMIN", nome: "Gestor Total" },
+    { id: "MANAGER", nome: "Gerente" },
+    { id: "USER", nome: "Operador" },
 ];
 
 export default function UserDrawer({ user, open, onClose }: UserDrawerProps) {

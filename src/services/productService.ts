@@ -16,3 +16,21 @@ export const productsByCompany = async (
   const { data } = await api.get(`/v1/products/company/${companyId}`);
   return data;
 };
+
+export const createProduct = async (data: {
+  name: string;
+  companyId: number;
+}) => {
+  const res = await api.post("/v1/products", data);
+  return res.data;
+};
+
+export const updateProduct = async (data: { id: number; name: string }) => {
+  const res = await api.put("/v1/products", data);
+  return res.data;
+};
+
+export const deleteProduct = async (id: number) => {
+  const res = await api.delete(`/v1/products/${id}`);
+  return res.data;
+};
