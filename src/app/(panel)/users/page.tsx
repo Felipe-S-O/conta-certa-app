@@ -76,7 +76,7 @@ const UsersPage = () => {
                                 className="p-4 border rounded-xl shadow-sm flex justify-between items-center hover:border-blue-300 transition-all group"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="bg-slate-100  dark:bg-slate-900 p-2.5 rounded-lg dark:group-hover:bg-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <div className="bg-blue-50 dark:bg-slate-900 text-blue-600 p-2.5 rounded-lg dark:group-hover:bg-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                         <UserCircle size={24} />
                                     </div>
                                     <div>
