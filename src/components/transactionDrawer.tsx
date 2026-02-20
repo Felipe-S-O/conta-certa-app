@@ -51,7 +51,10 @@ const transactionSchema = z.object({
     dueDate: z.string().optional(),
     description: z.string().min(1, "A descrição é obrigatória"),
     categoryId: z.coerce.number().min(1, "A categoria é obrigatória"),
-    userId: z.coerce.number().positive("O valor deve ser positivo"),
+    userId: z.preprocess(
+        (val) => (val === "" || val === undefined || val === null ? undefined : val),
+        z.coerce.number().optional()
+    ),
     fee: z.coerce.number().default(0),
     // --- NOVOS CAMPOS ---
     totalInstallments: z.coerce.number().min(1).max(120).optional().default(1),

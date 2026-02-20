@@ -193,7 +193,7 @@ const TransactionsPage = () => {
                                                 </span>
                                                 <span className="flex items-center gap-1 text-slate-500">
                                                     <Calendar size={12} />
-                                                    {new Date(t.date).toLocaleDateString('pt-BR')}
+                                                    {new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR')}
                                                 </span>
                                                 <span className="flex items-center gap-1 text-slate-500 border-l pl-3 border-slate-200">
                                                     <User size={12} />
