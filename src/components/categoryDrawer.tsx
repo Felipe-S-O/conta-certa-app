@@ -190,7 +190,7 @@ export default function CategoryDrawer({ category, open, onClose }: CategoryDraw
                         className=" bg-blue-600 hover:bg-blue-700 text-white"
                         disabled={form.formState.isSubmitting}
                     >
-                        {form.formState.isSubmitting ? "Salvando..." : "Salvar Categoria"}
+                        {form.formState.isSubmitting ? "Salvando..." : category?.id ? "Salvar Alterações" : "Salvar Categoria"}
                     </Button>
                 </DrawerFooter>
             </DrawerContent>

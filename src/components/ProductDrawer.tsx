@@ -132,7 +132,7 @@ export default function ProductDrawer({ product, open, onClose }: ProductDrawerP
                         className="bg-blue-600 hover:bg-blue-700 text-white"
                         disabled={form.formState.isSubmitting}
                     >
-                        {form.formState.isSubmitting ? "Salvando..." : "Salvar Produto"}
+                        {form.formState.isSubmitting ? "Salvando..." : product?.id ? "Salvar Alterações" : "Salvar Produto"}
                     </Button>
                 </DrawerFooter>
             </DrawerContent>

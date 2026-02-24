@@ -39,11 +39,10 @@ export const createPurchases = async (data: PurchasesData) => {
 /**
  * Atualiza uma compra existente
  */
-export const updatePurchases = async (
-  id: number,
-  data: Partial<PurchasesData>,
-) => {
-  const res = await api.put(`/v1/purchases/${id}`, data);
+export const updatePurchases = async (data: Partial<PurchasesData>) => {
+  // Se 'data' já tem o id (o que o formulário envia),
+  // basta passar o data diretamente.
+  const res = await api.put(`/v1/purchases`, data);
   return res.data;
 };
 
