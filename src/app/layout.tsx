@@ -20,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={cn("bg-background font-sans", gabarito.variable)}>
+      <body className={cn("bg-background font-sans", gabarito.variable)}
+        suppressHydrationWarning
+      >
         <AuthProvider>
           <Providers>
             <Toaster />
