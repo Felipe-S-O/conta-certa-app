@@ -56,6 +56,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Roda em tudo exceto arquivos estáticos e API
-    "/((?!api|_next/static|_next/image|favicon.ico|avatar.png|logo-inottec.png).*)",
+    "/((?!api|_next/static|icon.png|finance.jpg|avatar.png|logo-inottec.png|logo-paguei-certo.png).*)",
   ],
 };
