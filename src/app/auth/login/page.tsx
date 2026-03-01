@@ -12,7 +12,7 @@ export default function AuthPage() {
         <div className="flex items-center justify-center min-h-screen bg-[url('/finance.jpg')] sm:bg-cover bg-right sm:bg-center">
             <Card className="w-full max-w-xs p-6">
                 <CardHeader className="flex items-center justify-center">
-                    <Image src="/logo-inottec.png" alt="Logo" height={24} width={140} priority />
+                    <img src="/logo-paguei-certo.png" alt="Logo" className="h-16 w-auto object-contain mx-auto" />
                 </CardHeader>
                 <CardContent>
                     {!showRecovery ? (

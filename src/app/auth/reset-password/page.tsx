@@ -66,7 +66,7 @@ export default function ResetPasswordPage() {
             <Card className="w-full max-w-xs p-6">
                 <CardHeader className="flex items-center justify-center">
                     <Image
-                        src="/logo-inottec.png"
+                        src="/logo-paguei-certo.png"
                         alt="Logo"
                         height={24}
                         width={140}

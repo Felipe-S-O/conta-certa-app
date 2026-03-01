@@ -114,7 +114,7 @@ function MenuContent({ role }: MenuContentProps) {
 
             {/* Footer */}
             <div className="p-6 border-t">
-                <img src="/logo-inottec.png" alt="Inottec Logo" className="h-8 w-auto object-contain mx-auto" />
+                <img src="/logo-paguei-certo.png" alt="Logo" className="h-14 w-auto object-contain mx-auto" />
             </div>
         </div>
     );
