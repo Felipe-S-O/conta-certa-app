@@ -19,7 +19,7 @@ export const categoriesByCompanyAtom = atom(async (get) => {
 
   // 4. Busca as categorias no backend do Cloud Run
   try {
-    return await categoriesByCompany(companyId);
+    return await categoriesByCompany(1);
   } catch (error) {
     console.error("Erro ao buscar categorias por empresa:", error);
     return [];
