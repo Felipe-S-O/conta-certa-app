@@ -53,7 +53,7 @@ export default function ResetPasswordClient() {
         try {
             await resetPassword(token, data.newPassword);
             toast.success("Senha alterada com sucesso!");
-            router.push("/auth"); // redireciona para login
+            router.push("/auth/login"); // redireciona para login
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Erro ao resetar senha.");
         } finally {
