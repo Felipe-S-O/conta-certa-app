@@ -1,15 +1,15 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { usersByCompanyAtom, refreshUsersAtom } from "@/atoms/userAtom";
+import { usersAtom, refreshUsersAtom } from "@/atoms/userAtom";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import TopNav from "@/components/nav/top-nav";
 import Loading from "@/components/loading";
 import { Edit, Plus, Trash2, UserCircle, ShieldCheck } from "lucide-react";
 import Swal from "sweetalert2";
 import UserDrawer from "@/components/userDrawer";
-import { deleteUser } from "@/services/userService";
+import { deleteUser, usersByCompany } from "@/services/userService";
 
 const roleMap: Record<string, string> = {
     ADMIN: "Administrador",
@@ -19,17 +19,43 @@ const roleMap: Record<string, string> = {
 
 const UsersPage = () => {
     const { data: session } = useSession();
-    const [users] = useAtom(usersByCompanyAtom);
-    const [, setRefresh] = useAtom(refreshUsersAtom);
 
+    // Estados do Jotai
+    const [users, setUsers] = useAtom(usersAtom);
+    const [refresh, setRefresh] = useAtom(refreshUsersAtom);
+
+    // Estados Locais
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<any>(null);
-    const [showLoading, setShowLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
+    /**
+     * Lógica de Busca: Extraída para uma função estável com useCallback
+     */
+    const loadUsers = useCallback(async () => {
+        const companyId = session?.user?.companyId;
+        if (!companyId) return;
+
+        setLoading(true);
+        try {
+            const data = await usersByCompany(companyId);
+            setUsers(data);
+        } catch (error) {
+            console.error("Erro ao carregar usuários:", error);
+            // Opcional: Notificar erro ao usuário aqui
+        } finally {
+            setLoading(false);
+        }
+    }, [session?.user?.companyId, setUsers]);
+
+    /**
+     * Efeito que monitora a Sessão e o gatilho de Refresh
+     */
     useEffect(() => {
-        const timer = setTimeout(() => setShowLoading(false), 1000);
-        return () => clearTimeout(timer);
-    }, []);
+        if (session?.user?.companyId) {
+            loadUsers();
+        }
+    }, [session?.user?.companyId, refresh, loadUsers]);
 
     const canManage = session?.user.role === "ADMIN";
 
@@ -48,6 +74,7 @@ const UsersPage = () => {
         if (result.isConfirmed) {
             try {
                 await deleteUser(id);
+                // Dispara o refresh que ativa o useEffect acima
                 setRefresh((prev) => prev + 1);
                 Swal.fire("Removido!", "O acesso foi revogado com sucesso.", "success");
             } catch (error) {
@@ -61,7 +88,7 @@ const UsersPage = () => {
             <TopNav title="Gestão de Usuários" />
 
             <main className="mt-8">
-                {showLoading ? (
+                {loading ? (
                     <Loading />
                 ) : !users || users.length === 0 ? (
                     <div className="flex flex-col items-center justify-center mt-20 text-slate-500">
@@ -131,7 +158,7 @@ const UsersPage = () => {
                 )}
             </main>
 
-            {/* Floating Action Button */}
+            {/* Botão Flutuante para Adicionar */}
             {canManage && (
                 <button
                     aria-label="Adicionar usuário"
