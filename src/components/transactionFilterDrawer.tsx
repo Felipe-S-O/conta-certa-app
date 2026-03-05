@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 import { useAtom } from "jotai";
 import { categoriesByCompanyAtom } from "@/atoms/categoryAtom";
-import { usersByCompanyAtom } from "@/atoms/userAtom";
 import {
     Drawer,
     DrawerContent,
@@ -30,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, FilterX } from "lucide-react";
+import { usersByCompanyAtom } from "@/atoms/companyIdAtom";
 
 export interface TransactionFilters {
     type?: string;

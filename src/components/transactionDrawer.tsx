@@ -37,10 +37,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { categoriesByCompanyAtom } from "@/atoms/categoryAtom";
-import { usersByCompanyAtom } from "@/atoms/userAtom";
 import { createTransaction, updateTransaction } from "@/services/transactionService";
 import { refreshTransactionAtom } from "@/atoms/transactionAtom";
 import { Checkbox } from "./ui/checkbox";
+import { usersByCompanyAtom } from "@/atoms/companyIdAtom";
 
 const transactionSchema = z.object({
     id: z.number().optional(),
@@ -170,19 +170,19 @@ export default function TransactionDrawer({ transaction, open, onClose }: any) {
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name="categoryId"
+                                    name="type"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Categoria</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
+                                            <FormLabel>Tipo de Movimentação</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                 <SelectContent>
-                                                    {filteredCategories.map((c: any) => (
-                                                        <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
-                                                    ))}
+                                                    <SelectItem value="VARIABLE_INCOME">Receita Variável</SelectItem>
+                                                    <SelectItem value="FIXED_INCOME">Receita Fixa</SelectItem>
+                                                    <SelectItem value="VARIABLE_EXPENSE">Despesa Variável</SelectItem>
+                                                    <SelectItem value="FIXED_EXPENSE">Despesa Fixa</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -245,22 +245,23 @@ export default function TransactionDrawer({ transaction, open, onClose }: any) {
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name="type"
+                                    name="categoryId"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Tipo de Movimentação</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <FormLabel>Categoria</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="VARIABLE_INCOME">Receita Variável</SelectItem>
-                                                    <SelectItem value="FIXED_INCOME">Receita Fixa</SelectItem>
-                                                    <SelectItem value="VARIABLE_EXPENSE">Despesa Variável</SelectItem>
-                                                    <SelectItem value="FIXED_EXPENSE">Despesa Fixa</SelectItem>
+                                                    {filteredCategories.map((c: any) => (
+                                                        <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
+
                                 {!isFixedChecked && <FormField
                                     control={form.control}
                                     name="status"

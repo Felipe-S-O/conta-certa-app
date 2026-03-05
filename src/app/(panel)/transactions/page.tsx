@@ -1,8 +1,8 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { refreshTransactionAtom, transactionFiltersAtom, transactionsByCompanyAtom } from "@/atoms/transactionAtom";
-import { useEffect, useState, useMemo } from "react";
+import { refreshTransactionAtom, transactionFiltersAtom, transactionsAtom } from "@/atoms/transactionAtom";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import TopNav from "@/components/nav/top-nav";
 import Loading from "@/components/loading";
 import {
@@ -15,10 +15,11 @@ import {
 import Swal from "sweetalert2";
 import TransactionDrawer from "@/components/transactionDrawer";
 import TransactionFilterDrawer from "@/components/transactionFilterDrawer"; // 1. Importe o novo componente
-import { deleteTransactions } from "@/services/transactionService";
+import { deleteTransactions, filterTransactions } from "@/services/transactionService";
 import { categoriesByCompanyAtom } from "@/atoms/categoryAtom";
-import { usersByCompanyAtom } from "@/atoms/userAtom";
 import { Button } from "@/components/ui/button";
+import { usersByCompanyAtom } from "@/atoms/companyIdAtom";
+import { getSession } from "next-auth/react";
 
 const statusMap: Record<string, { label: string; color: string }> = {
     PENDING: { label: "Pendente", color: "bg-amber-100 text-amber-700" },
@@ -27,50 +28,88 @@ const statusMap: Record<string, { label: string; color: string }> = {
 };
 
 const TransactionsPage = () => {
-    const [transactions] = useAtom(transactionsByCompanyAtom);
+    // Jotai
+    const [transactions, setTransactions] = useAtom(transactionsAtom);
+    const [activeFilters, setActiveFilters] = useAtom(transactionFiltersAtom);
+    const [refresh, setRefresh] = useAtom(refreshTransactionAtom);
     const [categories] = useAtom(categoriesByCompanyAtom);
     const [users] = useAtom(usersByCompanyAtom);
-    const [, setRefresh] = useAtom(refreshTransactionAtom);
 
+    // Local UI
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [filterDrawerOpen, setFilterDrawerOpen] = useState(false); // 2. Estado para o Drawer de Filtro
+    const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
-    const [showLoading, setShowLoading] = useState(true);
-    const [activeFilters, setActiveFilters] = useAtom(transactionFiltersAtom);
+    const [loading, setLoading] = useState(true);
 
+    // Função auxiliar de data movida para cá
+    const formatDate = (d: Date | string) => {
+        const date = typeof d === "string" ? new Date(d) : d;
+        return date.toLocaleDateString("sv-SE"); // yyyy-MM-dd
+    };
+
+    /**
+     * Lógica de Busca movida do Atom para a Página
+     */
+    const loadTransactions = useCallback(async () => {
+        setLoading(true);
+        try {
+            const session = await getSession();
+            const companyId = session?.user?.companyId;
+            if (!companyId) return;
+
+            // 1. Formata os filtros antes de enviar
+            const formattedParams = Object.fromEntries(
+                Object.entries(activeFilters)
+                    .filter(([_, v]) => v !== "" && v !== null && v !== undefined)
+                    .map(([key, value]) => {
+                        if (key.toLowerCase().includes("date")) {
+                            return [key, formatDate(value as string)];
+                        }
+                        return [key, value];
+                    })
+            );
+
+            let data;
+            if (Object.keys(formattedParams).length > 0) {
+                // Busca com filtros manuais
+                data = await filterTransactions({ ...formattedParams, companyId });
+            } else {
+                // Busca padrão (últimos 30 dias)
+                const hoje = new Date();
+                const trintaDiasAtras = new Date();
+                trintaDiasAtras.setDate(hoje.getDate() - 30);
+
+                data = await filterTransactions({
+                    companyId,
+                    startDate: formatDate(trintaDiasAtras),
+                    endDate: formatDate(hoje),
+                });
+            }
+
+            setTransactions(data);
+        } catch (error) {
+            console.error("Erro ao carregar transações:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [activeFilters, setTransactions]);
+
+    // Dispara a busca quando filtros ou refresh mudarem
     useEffect(() => {
-        const timer = setTimeout(() => setShowLoading(false), 1000);
-        return () => clearTimeout(timer);
-    }, []);
+        loadTransactions();
+    }, [loadTransactions, refresh]);
 
-    // 4. Lógica de Filtragem (Front-end)
-    // Se o seu Atom já busca do backend com filtros, você usaria o setRefresh aqui.
-    // Caso contrário, filtramos a lista em memória:
-    const filteredTransactions = useMemo(() => {
-        if (!transactions) return [];
-        return transactions.filter((t: any) => {
-            if (activeFilters.type && t.type !== activeFilters.type) return false;
-            if (activeFilters.status && t.status !== activeFilters.status) return false;
-            if (activeFilters.userId && t.userId?.toString() !== activeFilters.userId) return false;
-            if (activeFilters.categoryId && t.categoryId?.toString() !== activeFilters.categoryId) return false;
-
-            // Filtro de Data (Exemplo simples)
-            if (activeFilters.startDate && new Date(t.date) < new Date(activeFilters.startDate)) return false;
-            if (activeFilters.endDate && new Date(t.date) > new Date(activeFilters.endDate)) return false;
-
-            return true;
-        });
-    }, [transactions, activeFilters]);
-
+    // Estatísticas (Calculadas sobre os dados que vieram da API)
     const stats = useMemo(() => {
-        return filteredTransactions.reduce((acc: any, t: any) => {
-            const isIncome = t.type.includes("INCOME");
-            if (isIncome) acc.income += t.amount;
-            else acc.expense += t.amount;
+        if (!transactions) return { income: 0, expense: 0, balance: 0 };
+        return transactions.reduce((acc: any, t: any) => {
+            const amount = Number(t.amount);
+            if (t.type.includes("INCOME")) acc.income += amount;
+            else acc.expense += amount;
             acc.balance = acc.income - acc.expense;
             return acc;
         }, { income: 0, expense: 0, balance: 0 });
-    }, [filteredTransactions]);
+    }, [transactions]);
 
     const handleDelete = async (id: number) => {
         const result = await Swal.fire({
@@ -144,9 +183,9 @@ const TransactionsPage = () => {
                     </button>
                 </div>
 
-                {showLoading ? (
+                {loading ? (
                     <Loading />
-                ) : filteredTransactions.length === 0 ? (
+                ) : transactions.length === 0 ? (
                     <div className="flex flex-col items-center justify-center mt-20 text-slate-500">
                         <ReceiptText size={48} className="mb-4 opacity-20" />
                         <p>Nenhuma transação encontrada.</p>
@@ -158,7 +197,7 @@ const TransactionsPage = () => {
                     </div>
                 ) : (
                     <ul className="grid grid-cols-1 gap-3">
-                        {filteredTransactions.map((t: any) => {
+                        {transactions.map((t: any) => {
                             const isIncome = t.type.includes("INCOME");
                             const isFixed = t.type.includes("FIXED");
                             const categoryName = t.category?.name || categories?.find((c: any) => c.id === t.categoryId)?.name || "Geral";
