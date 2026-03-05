@@ -25,7 +25,7 @@ const HomePage = () => {
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
       {/* Header */}
       <Card className="rounded-none shadow-sm border-b sticky top-0 z-40 backdrop-blur-md bg-white/80 dark:bg-slate-950/80">
-        <CardContent className="flex flex-row items-center justify-between px-6 max-w-7xl mx-auto w-full py-2">
+        <CardContent className="flex flex-row items-center justify-between container px-6 mx-auto w-full py-2">
           <div>
             <img src="/logo-paguei-certo.png" alt="Logo" className="h-14 w-auto object-contain" />
           </div>
