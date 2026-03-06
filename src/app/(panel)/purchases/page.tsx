@@ -37,7 +37,7 @@ const PurchasesPage = () => {
     };
 
     return (
-        <div className="p-10 font-sans min-h-screen">
+        <div className="p-4 sm:p-10 font-sans max-w-7xl mx-auto">
             <TopNav title="Compras e Suprimentos" />
 
             <main className="mt-8">

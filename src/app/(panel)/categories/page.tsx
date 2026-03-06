@@ -51,7 +51,7 @@ const CategoriesPage = () => {
     };
 
     return (
-        <div className="p-10 font-sans">
+        <div className="p-4 sm:p-10 font-sans max-w-7xl mx-auto">
             <TopNav title="Categorias Financeiras" />
 
             <main className="mt-8">

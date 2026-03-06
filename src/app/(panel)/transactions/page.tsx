@@ -134,7 +134,7 @@ const TransactionsPage = () => {
     };
 
     return (
-        <div className="p-8 font-sans">
+        <div className="p-4 sm:p-10 font-sans max-w-7xl mx-auto">
             <TopNav title="Fluxo de Caixa" />
 
             {/* Resumo Financeiro */}

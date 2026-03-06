@@ -52,7 +52,7 @@ const ProductsPage = () => {
     };
 
     return (
-        <div className="p-10 font-sans">
+        <div className="p-4 sm:p-10 font-sans max-w-7xl mx-auto">
             <TopNav title="Catálogo de Produtos" />
 
             <main className="mt-8">
